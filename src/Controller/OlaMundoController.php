@@ -12,7 +12,7 @@ class OlaMundoController
     /**
      * @Route("/ola")
      */
-    public function olaMundoAction(Request $request): Response
+    public function olaMundo(Request $request): Response
     {
         $pathInfo = $request->getPathInfo();
         $query = $request->query->all();
