@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Medico;
+use App\Helper\MedicoFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,11 +26,7 @@ class MedicosController extends AbstractController
     public function create(Request $request): Response
     {
         $corpoRequisicao = $request->getContent();
-        $dadosEmJson = json_decode($corpoRequisicao);
-
-        $medico = new Medico();
-        $medico->crm = $dadosEmJson->crm;
-        $medico->nome = $dadosEmJson->nome;
+        $medico = MedicoFactory::criarMedico($corpoRequisicao);
 
         $this->entityManager->persist($medico);
         $this->entityManager->flush();
@@ -52,16 +49,44 @@ class MedicosController extends AbstractController
     /**
      * @Route("/medicos/{id}", methods={"GET"})
      */
-    public function show(Request $request): Response
+    public function show(int $id): Response
     {
-        $id = $request->get('id');
-        $repositorioDeMedicos = $this->getDoctrine()->getRepository(Medico::class);
+        $medico = $this->buscaMedico($id);
 
-        $medico = $repositorioDeMedicos->find($id);
         if (is_null($medico)) {
             return new JsonResponse('', 204);
         }
 
         return new JsonResponse($medico);
+    }
+
+    /**
+     * @Route("/medicos/{id}", methods={"PUT"})
+     */
+    public function update(int $id, Request $request): Response
+    {
+        $medicoExistente = $this->buscaMedico($id);
+
+        if (is_null($medicoExistente)) {
+            return new JsonResponse('', 404);
+        }
+
+        $corpoRequisicao = $request->getContent();
+        $medicoEnviado = MedicoFactory::criarMedico($corpoRequisicao);
+
+        $medicoExistente->crm = $medicoEnviado->crm;
+        $medicoExistente->nome = $medicoEnviado->nome;
+        $this->entityManager->flush();
+
+        return new JsonResponse($medicoExistente);
+    }
+
+    private function buscaMedico(int $id)
+    {
+        $repositorioDeMedicos = $this->getDoctrine()->getRepository(Medico::class);
+        /** @var Medico */
+        $medico = $repositorioDeMedicos->find($id);
+
+        return $medico;
     }
 }
