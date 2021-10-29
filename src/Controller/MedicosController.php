@@ -14,10 +14,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class MedicosController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
+    private MedicoFactory $medicoFactory;
     
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, MedicoFactory $medicoFactory)
     {
         $this->entityManager = $entityManager;
+        $this->medicoFactory = $medicoFactory;
     }
     
     /**
@@ -26,12 +28,12 @@ class MedicosController extends AbstractController
     public function create(Request $request): Response
     {
         $corpoRequisicao = $request->getContent();
-        $medico = MedicoFactory::criarMedico($corpoRequisicao);
+        $medico = $this->medicoFactory->criarMedico($corpoRequisicao);
 
         $this->entityManager->persist($medico);
         $this->entityManager->flush();
 
-        return new JsonResponse($medico, 201);
+        return new JsonResponse($medico->jsonSerialize(), 201);
     }
 
     /**
@@ -57,7 +59,7 @@ class MedicosController extends AbstractController
             return new JsonResponse('', 204);
         }
 
-        return new JsonResponse($medico);
+        return new JsonResponse($medico->jsonSerialize());
     }
 
     /**
@@ -72,13 +74,13 @@ class MedicosController extends AbstractController
         }
 
         $corpoRequisicao = $request->getContent();
-        $medicoEnviado = MedicoFactory::criarMedico($corpoRequisicao);
+        $medicoEnviado = $this->medicoFactory->criarMedico($corpoRequisicao);
 
         $medicoExistente->crm = $medicoEnviado->crm;
         $medicoExistente->nome = $medicoEnviado->nome;
         $this->entityManager->flush();
 
-        return new JsonResponse($medicoExistente);
+        return new JsonResponse($medicoExistente->jsonSerialize());
     }
 
     /**
