@@ -76,8 +76,9 @@ class MedicosController extends AbstractController
         $corpoRequisicao = $request->getContent();
         $medicoEnviado = $this->medicoFactory->criarMedico($corpoRequisicao);
 
-        $medicoExistente->crm = $medicoEnviado->crm;
-        $medicoExistente->nome = $medicoEnviado->nome;
+        $medicoExistente
+            ->setCrm($medicoEnviado->getCrm())
+            ->setNome($medicoEnviado->getNome());
         $this->entityManager->flush();
 
         return new JsonResponse($medicoExistente->jsonSerialize());
