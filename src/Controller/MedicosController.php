@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Medico;
 use App\Helper\MedicoFactory;
+use App\Repository\MedicosRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,11 +16,16 @@ class MedicosController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
     private MedicoFactory $medicoFactory;
+    private MedicosRepository $medicoRepository;
     
-    public function __construct(EntityManagerInterface $entityManager, MedicoFactory $medicoFactory)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        MedicoFactory $medicoFactory,
+        MedicosRepository $medicoRepository
+    ) {
         $this->entityManager = $entityManager;
         $this->medicoFactory = $medicoFactory;
+        $this->medicoRepository = $medicoRepository;
     }
     
     /**
@@ -102,15 +108,27 @@ class MedicosController extends AbstractController
     }
 
     /**
+     * @Route("/especialidades/{especialidadeId}/medicos", methods={"GET"})
+     */
+    public function showBySpecialty(int $especialidadeId): Response
+    {
+        $medicos = $this->medicoRepository->findBy([
+            'especialidade' => $especialidadeId
+        ]);
+
+        if (empty($medicos)) {
+            return new JsonResponse('', 204);
+        }
+
+        return new JsonResponse($medicos);
+    }
+
+    /**
      * @param integer $id
      * @return Medico|null
      */
     private function buscaMedico(int $id)
     {
-        $repositorioDeMedicos = $this->getDoctrine()->getRepository(Medico::class);
-        /** @var Medico */
-        $medico = $repositorioDeMedicos->find($id);
-
-        return $medico;
+        return $this->medicoRepository->find($id);
     }
 }

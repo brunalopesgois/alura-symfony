@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Repository\MedicosRepository;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass=MedicosRepository::class)
  */
 class Medico implements JsonSerializable
 {
