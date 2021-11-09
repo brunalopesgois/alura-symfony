@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Especialidade;
+use App\Helper\EspecialidadeFactory;
 use App\Repository\EspecialidadeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,47 +13,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class EspecialidadesController extends BaseController
 {
-    private EntityManagerInterface $entityManager;
-    private EspecialidadeRepository $especialidadeRepository;
-    
     public function __construct(
         EntityManagerInterface $entityManager,
-        EspecialidadeRepository $especialidadeRepository
+        EspecialidadeRepository $especialidadeRepository,
+        EspecialidadeFactory $especialidadeFactory
     ) {
-        parent::__construct($especialidadeRepository);
-        $this->entityManager = $entityManager;
-        $this->especialidadeRepository = $especialidadeRepository;
-    }
-    
-    /**
-     * @Route("/especialidades", methods={"POST"})
-     */
-    public function create(Request $request): Response
-    {
-        $dadosRequest = $request->getContent();
-        $dadosEmJson = json_decode($dadosRequest);
-
-        $especialidade = new Especialidade();
-        $especialidade->setDescricao($dadosEmJson->descricao);
-
-        $this->entityManager->persist($especialidade);
-        $this->entityManager->flush();
-
-        return new JsonResponse($especialidade->jsonSerialize(), 201);
-    }
-
-    /**
-     * @Route("/especialidades/{id}", methods={"GET"})
-     */
-    public function show(int $id): Response
-    {
-        $especialidade = $this->especialidadeRepository->find($id);
-
-        if (is_null($especialidade)) {
-            return new JsonResponse('', 204);
-        }
-
-        return new JsonResponse($especialidade->jsonSerialize());
+        parent::__construct($especialidadeRepository, $entityManager, $especialidadeFactory);
     }
 
     /**
@@ -60,35 +26,17 @@ class EspecialidadesController extends BaseController
      */
     public function update(int $id, Request $request): Response
     {
-        $especialidadeExistente = $this->especialidadeRepository->find($id);
+        $especialidadeExistente = $this->repository->find($id);
 
         if (is_null($especialidadeExistente)) {
             return new JsonResponse('', 404);
         }
 
-        $dadosEmJson = json_decode($request->getContent());
+        $dadosRequest = $request->getContent();
 
-        $especialidadeExistente
-            ->setDescricao($dadosEmJson->descricao);
+        $especialidadeExistente = $this->factory->criarEntidade($dadosRequest);
         $this->entityManager->flush();
 
         return new JsonResponse($especialidadeExistente->jsonSerialize());
-    }
-
-    /**
-     * @Route("/especialidades/{id}", methods={"DELETE"})
-     */
-    public function remove(int $id): Response
-    {
-        $especialidade = $this->especialidadeRepository->find($id);
-
-        if (is_null($especialidade)) {
-            return new JsonResponse('', 404);
-        }
-
-        $this->entityManager->remove($especialidade);
-        $this->entityManager->flush();
-
-        return new JsonResponse('', 204);
     }
 }
