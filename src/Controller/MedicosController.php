@@ -7,7 +7,6 @@ use App\Helper\MedicoFactory;
 use App\Repository\MedicosRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -19,28 +18,6 @@ class MedicosController extends BaseController
         MedicosRepository $medicoRepository
     ) {
         parent::__construct($medicoRepository, $entityManager, $medicoFactory);
-    }
-
-    /**
-     * @Route("/medicos/{id}", methods={"PUT"})
-     */
-    public function update(int $id, Request $request): Response
-    {
-        $medicoExistente = $this->buscaMedico($id);
-
-        if (is_null($medicoExistente)) {
-            return new JsonResponse('', 404);
-        }
-
-        $corpoRequisicao = $request->getContent();
-        $medicoEnviado = $this->factory->criarMedico($corpoRequisicao);
-
-        $medicoExistente
-            ->setCrm($medicoEnviado->getCrm())
-            ->setNome($medicoEnviado->getNome());
-        $this->entityManager->flush();
-
-        return new JsonResponse($medicoExistente->jsonSerialize());
     }
 
     /**
@@ -60,11 +37,14 @@ class MedicosController extends BaseController
     }
 
     /**
-     * @param integer $id
-     * @return Medico|null
+     * @param Medico $entidadeExistente
+     * @param Medico $entidadeEnviada
      */
-    private function buscaMedico(int $id)
+    public function atualizarEntidadeExistente($entidadeExistente, $entidadeEnviada): void
     {
-        return $this->repository->find($id);
+        $entidadeExistente
+            ->setCrm($entidadeEnviada->getCrm())
+            ->setNome($entidadeEnviada->getNome())
+            ->setEspecialidade($entidadeEnviada->getEspecialidade());
     }
 }

@@ -55,6 +55,23 @@ abstract class BaseController extends AbstractController
         return new JsonResponse($entity->jsonSerialize());
     }
 
+    public function update(int $id, Request $request): Response
+    {
+        $entidadeExistente = $this->repository->find($id);
+
+        if (is_null($entidadeExistente)) {
+            return new JsonResponse('', 404);
+        }
+
+        $dadosRequest = $request->getContent();
+
+        $entidadeEnviada = $this->factory->criarEntidade($dadosRequest);
+        $this->atualizarEntidadeExistente($entidadeExistente, $entidadeEnviada);
+        $this->entityManager->flush();
+
+        return new JsonResponse($entidadeExistente->jsonSerialize());
+    }
+
     public function remove(int $id): Response
     {
         $entity = $this->repository->find($id);
@@ -68,4 +85,6 @@ abstract class BaseController extends AbstractController
 
         return new JsonResponse('', 204);
     }
+
+    abstract public function atualizarEntidadeExistente($entidadeExistente, $entidadeEnviada): void;
 }
