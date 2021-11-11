@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Helper\EntidadeFactory;
+use App\Helper\ExtratorDadosRequest;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,15 +16,18 @@ abstract class BaseController extends AbstractController
     protected ObjectRepository $repository;
     protected EntityManagerInterface $entityManager;
     protected EntidadeFactory $factory;
+    protected ExtratorDadosRequest $extratorDadosRequest;
 
     public function __construct(
         ObjectRepository $repository,
         EntityManagerInterface $entityManager,
-        EntidadeFactory $factory
+        EntidadeFactory $factory,
+        ExtratorDadosRequest $extratorDadosRequest
     ) {
         $this->repository = $repository;
         $this->entityManager = $entityManager;
         $this->factory = $factory;
+        $this->extratorDadosRequest = $extratorDadosRequest;
     }
 
     public function create(Request $request): Response
@@ -39,9 +43,10 @@ abstract class BaseController extends AbstractController
 
     public function index(Request $request): Response
     {
-        $informacoesDeordenacao = $request->query->get('sort');
+        $informacoesDeordenacao = $this->extratorDadosRequest->buscaDadosOrdenacao($request);
+        $informacoesDeFiltro = $this->extratorDadosRequest->buscaDadosFiltro($request);
         
-        $entityList = $this->repository->findBy([], $informacoesDeordenacao);
+        $entityList = $this->repository->findBy($informacoesDeFiltro, $informacoesDeordenacao);
 
         return new JsonResponse($entityList);
     }
