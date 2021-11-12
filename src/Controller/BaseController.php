@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Helper\EntidadeFactory;
 use App\Helper\ExtratorDadosRequest;
+use App\Helper\ResponseFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,18 +55,25 @@ abstract class BaseController extends AbstractController
             ($paginaAtual - 1) * $itensPorPagina
         );
 
-        return new JsonResponse($entityList);
+        $fabricaResposta = new ResponseFactory(
+            true,
+            $entityList,
+            $paginaAtual,
+            $itensPorPagina
+        );
+
+        return $fabricaResposta->getResponse();
     }
 
     public function show(int $id): Response
     {
         $entity = $this->repository->find($id);
 
-        if (is_null($entity)) {
-            return new JsonResponse('', 204);
-        }
+        $fabricaResposta = is_null($entity)
+            ? new ResponseFactory(true, $entity, 204)
+            : new ResponseFactory(true, $entity);
 
-        return new JsonResponse($entity->jsonSerialize());
+        return $fabricaResposta->getResponse();
     }
 
     public function update(int $id, Request $request): Response
