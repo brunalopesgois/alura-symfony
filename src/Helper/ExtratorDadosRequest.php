@@ -20,12 +20,32 @@ class ExtratorDadosRequest
         return $informacoesDefiltro;
     }
 
+    public function buscaDadosPaginacao(Request $request)
+    {
+        [ , , $paginaAtual, $itensPorPagina] = $this->buscaDadosRequest($request);
+
+        return [$paginaAtual, $itensPorPagina];
+    }
+
     private function buscaDadosRequest(Request $request): array
     {
-        $informacoesDeordenacao = $request->query->get('sort');
-        $informacoesDeFiltro = $request->query->all();
-        unset($informacoesDeFiltro['sort']);
+        $dadosOrdenacao = $request->query->get('sort');
+        $queryString = $request->query->all();
+        unset($queryString['sort']);
+        $paginaAtual = array_key_exists('page', $queryString)
+            ? $queryString['page']
+            : 1;
+        unset($queryString['page']);
+        $itensPorPagina = array_key_exists('itensPorPagina', $queryString)
+            ? $queryString['itensPorPagina']
+            : 5;
+        unset($queryString['itensPorPagina']);
 
-        return [$informacoesDeordenacao, $informacoesDeFiltro];
+        return [
+            $dadosOrdenacao,
+            $queryString,
+            $paginaAtual,
+            $itensPorPagina
+        ];
     }
 }

@@ -45,8 +45,14 @@ abstract class BaseController extends AbstractController
     {
         $informacoesDeordenacao = $this->extratorDadosRequest->buscaDadosOrdenacao($request);
         $informacoesDeFiltro = $this->extratorDadosRequest->buscaDadosFiltro($request);
+        [$paginaAtual, $itensPorPagina] = $this->extratorDadosRequest->buscaDadosPaginacao($request);
         
-        $entityList = $this->repository->findBy($informacoesDeFiltro, $informacoesDeordenacao);
+        $entityList = $this->repository->findBy(
+            $informacoesDeFiltro,
+            $informacoesDeordenacao,
+            $itensPorPagina,
+            ($paginaAtual - 1) * $itensPorPagina
+        );
 
         return new JsonResponse($entityList);
     }
