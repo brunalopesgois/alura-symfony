@@ -58,6 +58,7 @@ abstract class BaseController extends AbstractController
         $fabricaResposta = new ResponseFactory(
             true,
             $entityList,
+            200,
             $paginaAtual,
             $itensPorPagina
         );
