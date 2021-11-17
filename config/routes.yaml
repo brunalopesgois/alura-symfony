@@ -58,3 +58,9 @@ remover_especialidade:
   methods: 
     - DELETE
 
+gerar_token:
+  path: /login
+  controller: App\Controller\LoginController::login
+  methods:
+    - POST
+
