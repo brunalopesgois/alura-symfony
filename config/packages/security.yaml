@@ -18,8 +18,11 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            lazy: true
-            provider: app_user_provider
+            pattern: ^\/(?!.*login).*$
+            logout: ~
+            guard:
+                authenticators:
+                    - App\Security\JWTAutenticador
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
