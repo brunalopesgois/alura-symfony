@@ -10,6 +10,10 @@ class EspecialidadeFactory implements EntidadeFactory
     {
         $dadosEmJson = json_decode($json);
 
+        if (!property_exists($dadosEmJson, 'descricao')) {
+            throw new EntityFactoryException();
+        }
+
         $especialidade = new Especialidade();
         $especialidade->setDescricao($dadosEmJson->descricao);
 
