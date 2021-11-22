@@ -41,7 +41,7 @@ class LoginController extends AbstractController
             return new JsonResponse(['erro' => 'Usuário ou senha inválidos'], 401);
         }
 
-        $token = JWT::encode(['username' => $user->getUserIdentifier()], 'chave', array_keys(JWT::$supported_algs));
+        $token = JWT::encode(['username' => $user->getUserIdentifier()], 'chave');
 
         return new JsonResponse([
             'access_token' => $token
