@@ -7,6 +7,7 @@ use App\Helper\ExtratorDadosRequest;
 use App\Helper\ResponseFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,17 +19,20 @@ abstract class BaseController extends AbstractController
     protected EntityManagerInterface $entityManager;
     protected EntidadeFactory $factory;
     protected ExtratorDadosRequest $extratorDadosRequest;
+    protected CacheItemPoolInterface $cache;
 
     public function __construct(
         ObjectRepository $repository,
         EntityManagerInterface $entityManager,
         EntidadeFactory $factory,
-        ExtratorDadosRequest $extratorDadosRequest
+        ExtratorDadosRequest $extratorDadosRequest,
+        CacheItemPoolInterface $cache
     ) {
         $this->repository = $repository;
         $this->entityManager = $entityManager;
         $this->factory = $factory;
         $this->extratorDadosRequest = $extratorDadosRequest;
+        $this->cache = $cache;
     }
 
     public function create(Request $request): Response
@@ -38,6 +42,10 @@ abstract class BaseController extends AbstractController
 
         $this->entityManager->persist($entidade);
         $this->entityManager->flush();
+
+        $cacheItem = $this->cache->getItem($this->cachePrefix() . $entidade->getId());
+        $cacheItem->set($entidade);
+        $this->cache->save($cacheItem);
 
         return new JsonResponse($entidade->jsonSerialize(), 201);
     }
@@ -68,7 +76,9 @@ abstract class BaseController extends AbstractController
 
     public function show(int $id): Response
     {
-        $entity = $this->repository->find($id);
+        $entity = $this->cache->hasItem($this->cachePrefix() . $id)
+            ? $this->cache->getItem($this->cachePrefix() . $id)->get()
+            : $this->repository->find($id);
 
         $fabricaResposta = is_null($entity)
             ? new ResponseFactory(true, $entity, 204)
@@ -91,6 +101,10 @@ abstract class BaseController extends AbstractController
         $this->atualizarEntidadeExistente($entidadeExistente, $entidadeEnviada);
         $this->entityManager->flush();
 
+        $cacheItem = $this->cache->getItem($this->cachePrefix() . $id);
+        $cacheItem->set($entidadeEnviada);
+        $this->cache->save($cacheItem);
+
         return new JsonResponse($entidadeExistente->jsonSerialize());
     }
 
@@ -105,8 +119,12 @@ abstract class BaseController extends AbstractController
         $this->entityManager->remove($entity);
         $this->entityManager->flush();
 
+        $this->cache->deleteItem($this->cachePrefix() . $id);
+
         return new JsonResponse('', 204);
     }
 
     abstract public function atualizarEntidadeExistente($entidadeExistente, $entidadeEnviada): void;
+
+    abstract public function cachePrefix(): string;
 }

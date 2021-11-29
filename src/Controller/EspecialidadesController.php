@@ -7,6 +7,7 @@ use App\Helper\EspecialidadeFactory;
 use App\Helper\ExtratorDadosRequest;
 use App\Repository\EspecialidadeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class EspecialidadesController extends BaseController
 {
@@ -14,9 +15,16 @@ class EspecialidadesController extends BaseController
         EntityManagerInterface $entityManager,
         EspecialidadeRepository $especialidadeRepository,
         EspecialidadeFactory $especialidadeFactory,
-        ExtratorDadosRequest $extratorDadosRequest
+        ExtratorDadosRequest $extratorDadosRequest,
+        CacheItemPoolInterface $cache
     ) {
-        parent::__construct($especialidadeRepository, $entityManager, $especialidadeFactory, $extratorDadosRequest);
+        parent::__construct(
+            $especialidadeRepository,
+            $entityManager,
+            $especialidadeFactory,
+            $extratorDadosRequest,
+            $cache
+        );
     }
 
     /**
@@ -27,5 +35,10 @@ class EspecialidadesController extends BaseController
     {
         $entidadeExistente
             ->setDescricao($entidadeEnviada->getDescricao());
+    }
+
+    public function cachePrefix(): string
+    {
+        return 'especialidade_';
     }
 }
