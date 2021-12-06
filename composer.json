@@ -23,7 +23,10 @@
         "symfony/yaml": "5.3.*"
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^3.4"
+        "doctrine/doctrine-fixtures-bundle": "^3.4",
+        "symfony/browser-kit": "5.3.*",
+        "symfony/css-selector": "5.3.*",
+        "symfony/phpunit-bridge": "^6.0"
     },
     "config": {
         "optimize-autoloader": true,
@@ -58,7 +61,8 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
-        "symfony": "php bin/console"
+        "symfony": "php bin/console",
+        "test": "php bin/phpunit --color"
     },
     "conflict": {
         "symfony/symfony": "*"
