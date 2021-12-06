@@ -8,6 +8,7 @@ use App\Helper\ResponseFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,19 +21,22 @@ abstract class BaseController extends AbstractController
     protected EntidadeFactory $factory;
     protected ExtratorDadosRequest $extratorDadosRequest;
     protected CacheItemPoolInterface $cache;
+    protected LoggerInterface $logger;
 
     public function __construct(
         ObjectRepository $repository,
         EntityManagerInterface $entityManager,
         EntidadeFactory $factory,
         ExtratorDadosRequest $extratorDadosRequest,
-        CacheItemPoolInterface $cache
+        CacheItemPoolInterface $cache,
+        LoggerInterface $logger
     ) {
         $this->repository = $repository;
         $this->entityManager = $entityManager;
         $this->factory = $factory;
         $this->extratorDadosRequest = $extratorDadosRequest;
         $this->cache = $cache;
+        $this->logger = $logger;
     }
 
     public function create(Request $request): Response
@@ -46,6 +50,14 @@ abstract class BaseController extends AbstractController
         $cacheItem = $this->cache->getItem($this->cachePrefix() . $entidade->getId());
         $cacheItem->set($entidade);
         $this->cache->save($cacheItem);
+
+        $this->logger->notice(
+            'Novo registro de {entidade} adicionado com id: {id}',
+            [
+                'entidade' => get_class($entidade),
+                'id' => $entidade->getId()
+            ]
+        );
 
         return new JsonResponse($entidade->jsonSerialize(), 201);
     }
