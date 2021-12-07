@@ -45,6 +45,14 @@ class EspecialidadesWebTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testHtmlEspecialidade(): void
+    {
+        $this->client->request('GET', '/consultorio/especialidades');
+
+        $this->assertSelectorTextContains('h1', 'Especialidades');
+        $this->assertSelectorExists('.especialidade');
+    }
+
     private function login(KernelBrowser $client): string
     {
         $client->request(

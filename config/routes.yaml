@@ -58,6 +58,12 @@ remover_especialidade:
   methods: 
     - DELETE
 
+visualizar_especialidades:
+  path: /consultorio/especialidades
+  controller: App\Controller\EspecialidadesController::especialidadesEmHtml
+  methods: 
+    - GET
+
 gerar_token:
   path: /login
   controller: App\Controller\LoginController::login

@@ -30,6 +30,15 @@ class EspecialidadesController extends BaseController
         );
     }
 
+    public function especialidadesEmHtml()
+    {
+        $especialidades = $this->repository->findAll();
+        
+        return $this->render('especialidades.html.twig', [
+            'especialidades' => $especialidades
+        ]);
+    }
+
     /**
      * @param Especialidade $entidadeExistente
      * @param Especialidade $entidadeEnviada
